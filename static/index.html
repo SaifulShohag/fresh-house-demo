@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freshprint Evidence Viewer</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: system-ui, -apple-system, sans-serif; background-color: #1a1a1a; color: white; }
+        #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
+        
+        #controls {
+            position: absolute; top: 20px; left: 20px; z-index: 10;
+            background: rgba(30, 30, 30, 0.9); padding: 15px;
+            border-radius: 8px; border: 1px solid #444; width: 300px;
+            backdrop-filter: blur(5px);
+        }
+        
+        input { width: 100%; padding: 10px; margin-bottom: 10px; box-sizing: border-box; background: #222; border: 1px solid #555; color: white; border-radius: 4px; }
+        button { width: 100%; padding: 10px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #1d4ed8; }
+        button:disabled { background: #444; cursor: not-allowed; }
+        
+        #evidence-panel {
+            position: absolute; top: 20px; right: 20px; z-index: 10;
+            background: rgba(30, 30, 30, 0.95); padding: 20px;
+            border-radius: 8px; border: 1px solid #444; width: 320px;
+            backdrop-filter: blur(5px); display: none; max-height: 80vh; overflow-y: auto;
+        }
+        
+        #evidence-panel h3 { margin-top: 0; margin-bottom: 10px; font-size: 16px; border-bottom: 1px solid #555; padding-bottom: 5px; }
+        #evidence-panel h4 { margin-bottom: 5px; font-size: 14px; color: #aaa; }
+        #evidence-panel p { font-size: 13px; line-height: 1.4; color: #ddd; }
+        #evidence-panel ul { padding-left: 20px; margin-top: 5px; font-size: 13px; color: #ddd; word-wrap: break-word; }
+        #evidence-panel a { color: #60a5fa; text-decoration: none; }
+        #evidence-panel a:hover { text-decoration: underline; }
+        
+        .limitations { color: #fca5a5 !important; }
+        
+        .tag { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .documented_mapped { background: #065f46; color: #a7f3d0; }
+        .approximate { background: #92400e; color: #fde68a; }
+        .reconstructed_schematic { background: #1e3a8a; color: #bfdbfe; }
+        .unknown { background: #7f1d1d; color: #fecaca; }
+
+        #loading-overlay {
+            display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(20, 20, 20, 0.85); padding: 20px 40px; border-radius: 8px; border: 1px solid #444;
+            z-index: 20; text-align: center; backdrop-filter: blur(4px);
+        }
+        .spinner {
+            width: 30px; height: 30px; border: 3px solid #333; border-top-color: #2563eb;
+            border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px auto;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+    
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="controls">
+        <h3 style="margin-top:0; font-size: 16px;">Freshprint Engine</h3>
+        <input type="text" id="address-input" value="505 Ridge Dr, Florissant, MO 63033">
+        <button id="load-btn">Generate Evidence Model</button>
+    </div>
+
+    <div id="evidence-panel"></div>
+    
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <div>Ingesting GIS & Evidence Data...</div>
+    </div>
+    
+    <div id="canvas-container"></div>
+
+    <script type="module">
+        import { loadSiteData } from '/static/ui.js?v=20261001-3';
+
+        const btn = document.getElementById('load-btn');
+        const addressInput = document.getElementById('address-input');
+        const panel = document.getElementById('evidence-panel');
+        const loader = document.getElementById('loading-overlay');
+
+        async function triggerLoad() {
+            const address = addressInput.value;
+            if (!address) return;
+
+            panel.style.display = 'none';
+            btn.disabled = true;
+            loader.style.display = 'block';
+            
+            await loadSiteData(address);
+            
+            btn.disabled = false;
+            loader.style.display = 'none';
+        }
+
+        btn.addEventListener('click', triggerLoad);
+        
+        triggerLoad();
+    </script>
+</body>
+</html>
