@@ -2,8 +2,12 @@ import requests
 import json
 import subprocess
 import math
+import os
 from typing import Tuple, List, Optional
 from pydantic import BaseModel
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class GeocodeResult(BaseModel):
@@ -70,22 +74,27 @@ def _iter_candidate_rings(geojson_data: dict):
 
 
 def geocode_address(address: str) -> GeocodeResult:
-    url = "https://nominatim.openstreetmap.org/search"
-    headers = {"User-Agent": "FreshprintEvidenceEngine/1.0"}
-    params = {"q": address, "format": "json", "limit": 1}
+    api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+    if not api_key:
+        raise ValueError("GOOGLE_MAPS_API_KEY is not configured.")
 
-    response = requests.get(url, params=params, headers=headers, timeout=10)
+    response = requests.get(
+        "https://maps.googleapis.com/maps/api/geocode/json",
+        params={"address": address, "key": api_key},
+        timeout=10,
+    )
     response.raise_for_status()
     data = response.json()
+    if data.get("status") != "OK" or not data.get("results"):
+        message = data.get("error_message") or data.get("status", "Unknown error")
+        raise ValueError(f"Google geocoding failed for {address}: {message}")
 
-    if not data:
-        raise ValueError(f"Geocoding failed for {address}. No results found via OpenStreetMap.")
-
-    result = data[0]
+    result = data["results"][0]
+    location = result["geometry"]["location"]
     return GeocodeResult(
-        lat=float(result["lat"]),
-        lon=float(result["lon"]),
-        formatted_address=result["display_name"],
+        lat=float(location["lat"]),
+        lon=float(location["lng"]),
+        formatted_address=result["formatted_address"],
         place_id=str(result["place_id"]),
     )
 

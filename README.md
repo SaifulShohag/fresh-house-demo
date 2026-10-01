@@ -11,7 +11,7 @@ The deployed prototype currently uses the address `505 Ridge Dr, Florissant, MO 
 
 ## Capabilities
 
-- Geocodes an address through OpenStreetMap Nominatim.
+- Geocodes an address through the Google Maps Geocoding API.
 - Retrieves a building footprint and height through the Overture Maps CLI.
 - Queries MSD sanitary network lines and points through ArcGIS FeatureServer.
 - Loads professional sewer inspection evidence from a normalized JSON report.
@@ -65,7 +65,7 @@ Address
 
 - Python 3.10 or newer
 - Overture Maps CLI available on the system path
-- Network access to Nominatim, Overture Maps, and MSD ArcGIS services
+- Network access to Google Maps, Overture Maps, and MSD ArcGIS services
 
 ### Setup
 
@@ -76,6 +76,8 @@ pip install -r requirements.txt
 ```
 
 Create a local `.env` file only when required by future integrations. Never commit credentials or place them in this README.
+
+The geocoder requires `GOOGLE_MAPS_API_KEY` in the local `.env` file or the deployment environment.
 
 ### Run
 
